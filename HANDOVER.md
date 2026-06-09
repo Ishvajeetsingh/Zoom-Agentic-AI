@@ -1,221 +1,740 @@
-# Handover
+# HANDOVER DOCUMENT
 
-Project: Agentic AI for Automated Question Generation from Zoom Meeting Transcripts
+# Zoom Agentic AI
 
-Source specification: `docs/PROJECT_SPECIFICATION.docx`
+## Project Handover and Operational Guide
 
-Current state: Zoom integration, transcript retrieval, VTT parsing, transcript cleaning, semantic chunking, and Ollama integration implemented; LangGraph orchestration and AI pipeline completion pending.
+---
 
-## 1. Project Intent
+# Document Information
 
-This project will automate assessment question generation from Zoom meeting transcripts. It listens for completed Zoom cloud recordings, downloads the transcript, preprocesses the content, runs an agentic LangGraph workflow using local Ollama models, validates and deduplicates generated questions, stores results in PostgreSQL, and exposes them through a FastAPI API and optional React + Vite dashboard.
+| Field          | Value                                                             |
+| -------------- | ----------------------------------------------------------------- |
+| Project Name   | Zoom Agentic AI                                                   |
+| Project Type   | AI-Powered Transcript Processing and Question Generation Platform |
+| Author         | Ishvajeet Singh                                                   |
+| Version        | 1.0                                                               |
+| Last Updated   | June 2026                                                         |
+| Project Status | Functional Prototype                                              |
 
-## 2. Implemented So Far
+---
 
-- FastAPI backend scaffold and API router.
-- Environment configuration through `.env.example`.
-- Structured logging setup.
-- PostgreSQL connection layer through SQLAlchemy.
-- Alembic migration structure.
-- Zoom Server-to-Server OAuth token generation.
-- Zoom webhook security validation.
-- Zoom `endpoint.url_validation` handling.
-- Zoom `recording.completed` handling.
-- PostgreSQL persistence for meeting metadata, transcript metadata, and webhook events.
-- Authenticated streamed transcript downloads.
-- Local raw transcript storage under `transcripts/raw/{meeting_id}/`.
-- VTT parser for downloaded transcript files.
-- Transcript segment persistence.
-- Parse trigger endpoint.
+# Purpose
 
-## 3. Not Implemented Yet
+This document provides all information required to:
 
-- LangGraph workflow.
-- Question persistence.
-- Question validation and deduplication.
-- Embeddings.
-- Frontend features beyond scaffold placeholders.
+* Understand the project architecture
+* Configure the development environment
+* Run the application
+* Process transcript files
+* Process Zoom meetings
+* Generate questions
+* Demonstrate the project
+* Troubleshoot common issues
 
-## 4. Parsing Workflow
+The goal is to enable another developer, faculty member, or evaluator to successfully run and test the system without additional guidance.
 
-Flow:
+---
 
-1. Transcript retrieval stores a raw `.vtt` file under `transcripts/raw/{meeting_id}/`.
-2. Transcript row has `status = downloaded`.
-3. `POST /api/v1/transcripts/{transcript_id}/parse` starts parsing.
-4. `TranscriptParseService` marks the transcript as `parsing_started`.
-5. `VttParser` reads the local `raw_file_path`.
-6. Parser extracts:
-   - cue sequence order
-   - start timestamp in seconds
-   - end timestamp in seconds
-   - speaker label when present
-   - transcript text
-7. Parser skips malformed cue blocks, missing timestamps, invalid ranges, empty cues, and exact duplicate cues.
-8. Existing segments for the transcript are replaced.
-9. New segments are inserted into `transcript_segments`.
-10. Transcript row is updated to `parsed` with `segment_count` and `word_count`.
-11. If parsing fails, status becomes `parsing_failed` and `parse_error` is stored.
+# Project Overview
 
-## 5. API Endpoints
+Zoom Agentic AI is an intelligent transcript-processing platform that converts meeting conversations into multiple-choice assessment questions using locally hosted Large Language Models (LLMs).
 
-Implemented:
+The platform supports:
 
-- `POST /api/v1/webhooks/zoom`
-- `POST /api/v1/transcripts/{transcript_id}/download`
-- `POST /api/v1/transcripts/{transcript_id}/parse`
-- `POST /api/v1/transcripts/{transcript_id}/clean`
-- `POST /api/v1/transcripts/{transcript_id}/chunk`
+* Zoom Meeting Processing
+* Transcript Upload Processing
+* Transcript Parsing
+* Transcript Cleaning
+* Semantic Chunking
+* AI-Based Question Generation
+* Database Persistence
+* Dashboard Visualization
 
-Still placeholder:
+---
 
-- `POST /api/v1/transcripts/upload`
+# Technology Stack
 
-## 6. Database Migrations
+## Frontend
 
-Migrations:
+* React
+* TypeScript
+* Vite
 
-- `backend/alembic/versions/20260601_0001_zoom_integration.py`
-- `backend/alembic/versions/20260601_0002_transcript_retrieval.py`
-- `backend/alembic/versions/20260601_0003_transcript_segments.py`
-- `backend/alembic/versions/20260601_0004_transcript_cleaning.py`
-- `backend/alembic/versions/20260601_0005_transcript_chunks.py`
+---
 
-Transcript segment table:
+## Backend
 
-| Column | Purpose |
-| --- | --- |
-| `segment_id` | Segment primary key |
-| `transcript_id` | Parent transcript |
-| `meeting_id` | Parent meeting |
-| `start_time` | Cue start time in seconds |
-| `end_time` | Cue end time in seconds |
-| `speaker` | Speaker label |
-| `text` | Original parsed transcript text |
-| `cleaned_text` | Cleaned transcript text used for downstream processing |
-| `sequence_number` | Parser-assigned cue order |
+* FastAPI
+* Python 3.11+
+* SQLAlchemy
+* Alembic
 
-## Semantic Chunking
+---
 
-Implemented:
+## Database
 
-- TranscriptChunk model
-- SemanticChunker service
-- ChunkingService orchestration
-- Chunk persistence
-- Chunk API endpoint
+* PostgreSQL
 
-Chunk boundaries are determined using:
+---
 
-- hard word limits
-- pause gaps
-- speaker changes
-- topic-shift phrases
-- sentence boundaries
+## AI Layer
 
-Chunk metadata includes:
+* Ollama
+* qwen3:8b (Primary)
+* phi3:mini (Fallback)
 
-- chunk index
-- speakers
-- segment references
-- timestamps
-- word counts
+---
 
+# Project Structure
 
-## 7. Example Parsed Segment
-
-```json
-{
-  "segment_id": "generated-uuid",
-  "transcript_id": "transcript-uuid",
-  "meeting_id": "meeting-uuid",
-  "start_time": 5.5,
-  "end_time": 8.25,
-  "speaker": "Bob",
-  "text": "We completed the API integration yesterday.",
-  "sequence_number": 2
-}
+```text
+Zoom-Agentic-AI/
+│
+├── backend/
+├── frontend/
+├── database/
+├── docs/
+├── meeting_samples/
+├── screenshots/
+├── tests/
+│
+├── README.md
+├── ARCHITECTURE.md
+├── PROJECT_STATUS.md
+├── HANDOVER.md
+│
+├── .env.example
+├── PROJECT_PLAN.md
 ```
 
-## 8. Local Testing Procedure
+---
 
-1. Install backend dependencies, including dev test dependencies.
-2. Apply migrations:
+# Environment Setup
 
-```powershell
+## Prerequisites
+
+Install:
+
+### Python
+
+Version:
+
+```text
+Python 3.11+
+```
+
+---
+
+### Node.js
+
+Version:
+
+```text
+Node.js 18+
+```
+
+---
+
+### PostgreSQL
+
+Version:
+
+```text
+PostgreSQL 15+
+```
+
+---
+
+### Ollama
+
+Download and install:
+
+https://ollama.com
+
+---
+
+# Database Setup
+
+Create database:
+
+```text
+zoom_agentic_ai
+```
+
+Example connection string:
+
+```env
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/zoom_agentic_ai
+```
+
+Run migrations:
+
+```bash
 cd backend
+
 alembic upgrade head
 ```
 
-3. Start the backend:
+---
 
-```powershell
-uvicorn app.main:app --reload
+# Ollama Setup
+
+Install required models:
+
+```bash
+ollama pull qwen3:8b
+
+ollama pull phi3:mini
 ```
 
-4. Download a transcript through the retrieval endpoint.
-5. Trigger parsing:
+Verify installation:
 
-```powershell
-Invoke-RestMethod -Method Post `
-  -Uri http://127.0.0.1:8000/api/v1/transcripts/{transcript_id}/parse
+```bash
+ollama list
 ```
 
-6. Confirm the transcript row has `status = parsed`.
-7. Confirm rows exist in `transcript_segments`.
+Expected output:
 
-Parser unit tests:
-
-```powershell
-$env:PYTHONPATH="backend"
-pytest tests/backend/unit/test_vtt_parser.py
+```text
+qwen3:8b
+phi3:mini
 ```
 
-## 9. Logging Strategy
+---
 
-Structured log events added:
+# Backend Setup
 
-- `vtt_parser.missing_timestamp`
-- `vtt_parser.malformed_timestamp`
-- `vtt_parser.empty_cue`
-- `vtt_parser.empty_text_after_cleanup`
-- `vtt_parser.invalid_time_range`
-- `vtt_parser.duplicate_cue_skipped`
-- `vtt_parser.completed`
-- `transcript_parse.started`
-- `transcript_parse.completed`
-- `transcript_parse.failed`
-- `transcript_parse.api_error`
-- `transcript_parse.database_error`
+Navigate to backend directory:
 
-## Ollama Integration
+```bash
+cd backend
+```
 
-Implemented:
+Create virtual environment:
 
-- OllamaApiClient
-- Health checking
-- Retry/backoff handling
-- Model listing
-- Model pull support
-- JSON generation mode
-- Model fallback support
+```bash
+python -m venv .venv
+```
 
-Question service now consumes transcript chunks and generates structured question payloads through Ollama.
+Activate environment:
 
-No database changes were required.
+### Windows
 
-## 10. Recommended Next Module
+```bash
+.venv\Scripts\activate
+```
 
-Implement LangGraph Workflow.
+Install dependencies:
 
-Recommended sequence:
+```bash
+pip install -e .
+```
 
-1. Define workflow state.
-2. Create chunk processing node.
-3. Create question generation node.
-4. Create validation node.
-5. Create deduplication node.
-6. Create export/output node.
-7. Connect workflow to Ollama-powered question generation.
+---
 
-Do not implement embeddings or frontend features until workflow orchestration is reviewed.
+# Backend Configuration
+
+Edit:
+
+```text
+backend/.env
+```
+
+Example:
+
+```env
+APP_ENV=development
+
+APP_HOST=127.0.0.1
+APP_PORT=8000
+
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/zoom_agentic_ai
+
+OLLAMA_BASE_URL=http://localhost:11434
+
+OLLAMA_PRIMARY_MODEL=qwen3:8b
+OLLAMA_FALLBACK_MODEL=phi3:mini
+
+ZOOM_ACCOUNT_ID=
+ZOOM_CLIENT_ID=
+ZOOM_CLIENT_SECRET=
+```
+
+---
+
+# Running Backend
+
+Open terminal:
+
+```bash
+cd backend
+```
+
+Start FastAPI:
+
+```bash
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Expected:
+
+```text
+Application startup complete
+```
+
+Backend URL:
+
+```text
+http://127.0.0.1:8000
+```
+
+Swagger API Documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# Frontend Setup
+
+Open a new terminal.
+
+Navigate:
+
+```bash
+cd frontend
+```
+
+Install packages:
+
+```bash
+npm install
+```
+
+Run frontend:
+
+```bash
+npm run dev
+```
+
+Frontend URL:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# Verifying Startup
+
+Backend Verification:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Should display FastAPI Swagger documentation.
+
+Frontend Verification:
+
+```text
+http://localhost:5173
+```
+
+Should display the dashboard.
+
+---
+
+# Supported Transcript Formats
+
+Currently Supported:
+
+* VTT (Zoom Transcript Files)
+* TXT (Zoom Chat Export Files)
+
+Important:
+
+JSON uploads may be accepted by the upload endpoint but JSON transcript parsing is not currently implemented.
+
+---
+
+# Transcript Upload Workflow
+
+## Purpose
+
+Process transcript files directly.
+
+---
+
+## Steps
+
+1. Open Upload Transcript page.
+2. Select transcript file.
+3. Upload transcript.
+4. Start processing.
+5. Monitor workflow progress.
+6. View generated questions.
+
+---
+
+## Processing Pipeline
+
+```text
+Upload
+  ↓
+Parse
+  ↓
+Clean
+  ↓
+Chunk
+  ↓
+Generate Questions
+  ↓
+Persist Questions
+```
+
+---
+
+# Zoom Meeting Workflow
+
+## Purpose
+
+Process Zoom meetings directly using Zoom APIs.
+
+---
+
+## Required Credentials
+
+* Zoom Account ID
+* Zoom Client ID
+* Zoom Client Secret
+* Meeting UUID
+
+---
+
+## Zoom Requirements
+
+The target meeting must satisfy:
+
+### Cloud Recording
+
+Enabled
+
+### Transcript Generation
+
+Enabled
+
+Examples:
+
+* Audio Transcript
+* Meeting Transcript
+
+Without a transcript file, question generation cannot be performed.
+
+---
+
+## Zoom Processing Flow
+
+```text
+Meeting UUID
+      ↓
+OAuth Authentication
+      ↓
+Meeting Retrieval
+      ↓
+Recording Discovery
+      ↓
+Transcript Discovery
+      ↓
+Download
+      ↓
+Parse
+      ↓
+Clean
+      ↓
+Chunk
+      ↓
+Generate Questions
+      ↓
+Persist Questions
+```
+
+---
+
+# Frontend Pages
+
+## Dashboard
+
+Displays:
+
+* Transcript counts
+* Question counts
+* Quick actions
+* Navigation shortcuts
+
+---
+
+## Process Meeting
+
+Inputs:
+
+* Zoom Account ID
+* Zoom Client ID
+* Zoom Client Secret
+* Meeting UUID
+
+Output:
+
+* Processing Timeline
+* Workflow Status
+* Question Generation Results
+
+---
+
+## Upload Transcript
+
+Purpose:
+
+* Upload VTT files
+* Upload TXT files
+
+Output:
+
+* Processing Timeline
+* Generated Questions
+
+---
+
+# Processing Timeline
+
+Workflow stages:
+
+```text
+Received
+Download
+Parse
+Clean
+Chunk
+Generate
+Completed
+```
+
+The UI displays the status of each stage.
+
+---
+
+# Question Generation
+
+## AI Models
+
+Primary:
+
+```text
+qwen3:8b
+```
+
+Fallback:
+
+```text
+phi3:mini
+```
+
+---
+
+## Question Generation Flow
+
+```text
+Transcript Chunk
+      ↓
+Prompt Construction
+      ↓
+Ollama
+      ↓
+Qwen3:8B
+      ↓
+JSON Output
+      ↓
+Validation
+      ↓
+Database Persistence
+```
+
+---
+
+# Testing Procedure
+
+## Transcript Upload Test
+
+1. Start backend.
+2. Start frontend.
+3. Open Upload Transcript page.
+4. Upload VTT or TXT transcript.
+5. Execute processing pipeline.
+6. Verify generated questions.
+
+Expected Result:
+
+Questions should be stored and displayed.
+
+---
+
+## Zoom Meeting Test
+
+1. Configure Zoom credentials.
+2. Enter Meeting UUID.
+3. Start processing.
+4. Verify transcript retrieval.
+5. Verify question generation.
+
+Expected Result:
+
+Questions generated from transcript content.
+
+---
+
+# Common Issues
+
+## Uvicorn Not Found
+
+Error:
+
+```text
+uvicorn is not recognized
+```
+
+Solution:
+
+```bash
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+---
+
+## Ollama Port Already In Use
+
+Error:
+
+```text
+Only one usage of each socket address is normally permitted
+```
+
+Reason:
+
+Ollama is already running.
+
+Solution:
+
+Do not launch a second Ollama instance.
+
+---
+
+## No Questions Generated
+
+Possible causes:
+
+### Transcript Contains Mostly Greetings
+
+Examples:
+
+* Thank you sir
+* Attendance submitted
+* Good afternoon
+
+Result:
+
+Limited meaningful questions.
+
+---
+
+### Transcript Too Small
+
+Result:
+
+Model may generate fewer questions.
+
+---
+
+### Transcript Missing
+
+Result:
+
+Processing cannot continue.
+
+---
+
+## Zoom Processing Failure
+
+Verify:
+
+* Account ID is correct
+* Client ID is correct
+* Client Secret is correct
+* Meeting UUID is correct
+* Cloud Recording enabled
+* Transcript generated
+
+---
+
+# GitHub Repository
+
+Repository URL:
+
+```text
+https://github.com/Ishvajeetsingh/Zoom-Agentic-AI
+```
+
+---
+
+# Current Limitations
+
+1. JSON transcript parsing is not implemented.
+2. Question quality depends on transcript quality.
+3. Chat-heavy transcripts may produce limited questions.
+4. Real Zoom testing requires transcript-enabled recordings.
+
+---
+
+# Future Enhancements
+
+Potential future improvements:
+
+* JSON transcript parser
+* Google Meet integration
+* Microsoft Teams integration
+* Export functionality
+* Analytics dashboard
+* User authentication
+* Monitoring dashboard
+
+---
+
+# Handover Checklist
+
+| Item                 | Status    |
+| -------------------- | --------- |
+| Backend Source Code  | Available |
+| Frontend Source Code | Available |
+| Database Migrations  | Available |
+| Ollama Integration   | Available |
+| Zoom Integration     | Available |
+| Documentation        | Available |
+| GitHub Repository    | Available |
+| Demo Workflow        | Available |
+
+---
+
+# Final Handover Status
+
+```text
+READY FOR ACADEMIC DEMONSTRATION AND EVALUATION
+```
+
+Author:
+
+**Ishvajeet Singh**
+
+B.Tech Computer Science and Engineering
+
+Zoom Agentic AI Project
