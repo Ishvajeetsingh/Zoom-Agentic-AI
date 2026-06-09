@@ -1,0 +1,2 @@
+"""Processing worker placeholder."""
+

@@ -1,0 +1,2 @@
+"""Generate MCQ tool placeholder."""
+

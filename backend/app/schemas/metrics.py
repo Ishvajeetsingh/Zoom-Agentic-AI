@@ -1,0 +1,2 @@
+"""Metric API schema placeholders."""
+

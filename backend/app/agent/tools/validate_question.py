@@ -1,0 +1,2 @@
+"""Validate question tool placeholder."""
+

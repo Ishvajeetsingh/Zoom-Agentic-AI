@@ -1,0 +1,8 @@
+00:00:05 Alice: Hi everyone, welcome to the standup.
+00:00:12 Bob: Thanks Alice, I have a quick update on the backend.
+00:00:18 From Bob to Everyone: The API endpoints are now deployed to staging.
+00:00:30 Carol: Great, I'll start QA testing this afternoon.
+00:00:45 Alice: Please share the test plan before you begin.
+00:01:02 David: I noticed a minor bug in the auth flow.
+00:01:15 From David to Everyone: It's a token refresh issue, I'll fix it today.
+00:01:30 Bob: Sounds good, we can review it in tomorrow's standup.

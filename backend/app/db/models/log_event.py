@@ -1,0 +1,2 @@
+"""Log event model placeholder."""
+

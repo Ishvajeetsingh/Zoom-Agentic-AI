@@ -1,0 +1,2 @@
+"""Metric model placeholder."""
+

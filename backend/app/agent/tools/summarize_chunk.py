@@ -1,0 +1,2 @@
+"""Summarize chunk tool placeholder."""
+

@@ -1,0 +1,29 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:04.000
+Alice: Welcome to the weekly sync.
+
+2
+00:00:05.500 --> 00:00:08.250
+<v Bob>We completed the API integration yesterday.</v>
+
+3
+00:00:09.000 --> 00:00:12.000
+The release candidate is ready for testing.
+
+4
+00:00:09.000 --> 00:00:12.000
+The release candidate is ready for testing.
+
+bad cue without timestamp
+This block should be ignored.
+
+5
+00:00:13.000 --> 00:00:12.000
+Alice: This invalid range should be ignored.
+
+6
+00:00:15.000 --> 00:00:18.000
+Carol: Please share the QA checklist after this call.
+

@@ -1,0 +1,2 @@
+"""Metric repository placeholder."""
+
